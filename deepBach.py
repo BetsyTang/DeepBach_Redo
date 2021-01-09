@@ -34,7 +34,7 @@ def main():
                         type=int, default=200)
     parser.add_argument('-n', '--name',
                         help='model name (default: %(default)s)',
-                        choices=['deepbach', 'skip'],
+                        choices=['deepbach', 'skip', 'maxent', 'mlp'],
                         type=str, default='deepbach')
     parser.add_argument('-i', '--num_iterations',
                         help='number of gibbs iterations (default: %(default)s)',
@@ -47,7 +47,7 @@ def main():
                         type=int, const=16, default=1)
     parser.add_argument('--overwrite',
                         help='overwrite previously computed models',
-                        action='store_true')
+                        action='store_true', default=0)
     parser.add_argument('-m', '--midi_file', nargs='?',
                         help='relative path to midi file',
                         type=str, const='datasets/god_save_the_queen.mid')
@@ -97,11 +97,10 @@ def main():
                        voice_ids=[0, 1, 2, 3])
 
     # load dataset
-    X, X_metadatas, voice_ids, index2notes, note2indexes, metadatas = pickle.load(
-        open(pickled_dataset,
-             'rb'))
-    NUM_VOICES = len(voice_ids
-                     )
+    d = open(pickled_dataset, 'rb')
+    print(d)
+    X, X_metadatas, voice_ids, index2notes, note2indexes, metadatas = pickle.load(d)
+    NUM_VOICES = len(voice_ids)
     num_pitches = list(map(len, index2notes))
     timesteps = args.timesteps
     batch_size = args.batch_size_train
@@ -121,7 +120,7 @@ def main():
     # when reharmonization
     if args.midi_file:
         melody = converter.parse(args.midi_file)
-        melody = part_to_inputs(melody.parts[0], index2note=index2notes[0],
+        melody = part_to_inputs(melody.parts[0], sequence_length, index2note=index2notes[0],
                                 note2index=note2indexes[0])
         num_voices = NUM_VOICES - 1
         sequence_length = len(melody)

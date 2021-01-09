@@ -196,3 +196,112 @@ def deepbach_skip_connections(num_features_lr, num_features_c,
                   metrics=['accuracy'])
     model.summary()
     return model
+
+
+def mlpBach(num_features_lr, num_features_c, num_pitches, num_features_meta,
+             num_units_lstm=[200],
+             num_dense=200, timesteps=16):
+    """
+
+    :param num_features_lr: size of left or right features vectors
+    :param num_features_c: size of central features vectors
+    :param num_pitches: size of output
+    :param num_units_lstm: list of lstm layer sizes
+    :param num_dense:
+    :return:
+    """
+    # input
+    left_features = Input(shape=(timesteps, num_features_lr),
+                          name='left_features')
+    right_features = Input(shape=(timesteps, num_features_lr),
+                           name='right_features')
+    central_features = Input(shape=(num_features_c,), name='central_features')
+    # input metadatas
+    left_metas = Input(shape=(timesteps, num_features_meta), name='left_metas')
+    right_metas = Input(shape=(timesteps, num_features_meta),
+                        name='right_metas')
+    central_metas = Input(shape=(num_features_meta,), name='central_metas')
+
+    predictions_left = concatenate([left_features, left_metas])
+    predictions_right = concatenate([right_features, right_metas])
+
+    predictions_left = Lambda(lambda t: t[:, -1, :],
+                                  output_shape=lambda input_shape: (
+                                  input_shape[0], input_shape[-1])
+                                  )(predictions_left)
+    predictions_right = Lambda(lambda t: t[:, -1, :],
+                                   output_shape=lambda input_shape: (
+                                   input_shape[0], input_shape[-1],)
+                                   )(predictions_right)
+
+    predictions_center = concatenate([central_features, central_metas])
+
+    predictions = concatenate([predictions_left, predictions_center, predictions_right])
+    predictions = Dense(500, activation='relu')(predictions)
+    pitch_prediction = Dense(num_pitches, activation='softmax',
+                             name='pitch_prediction')(predictions)
+
+    model = Model(input=[left_features, central_features, right_features,
+                         left_metas, central_metas, right_metas
+                         ],
+                  output=pitch_prediction)
+
+    model.compile(optimizer='adam',
+                  loss={'pitch_prediction': 'categorical_crossentropy'},
+                  metrics=['accuracy'])
+    model.summary()
+    return model
+
+def maxentBach(num_features_lr, num_features_c, num_pitches, num_features_meta,
+             num_units_lstm=[200],
+             num_dense=200, timesteps=16):
+    """
+
+    :param num_features_lr: size of left or right features vectors
+    :param num_features_c: size of central features vectors
+    :param num_pitches: size of output
+    :param num_units_lstm: list of lstm layer sizes
+    :param num_dense:
+    :return:
+    """
+    # input
+    left_features = Input(shape=(timesteps, num_features_lr),
+                          name='left_features')
+    right_features = Input(shape=(timesteps, num_features_lr),
+                           name='right_features')
+    central_features = Input(shape=(num_features_c,), name='central_features')
+    # input metadatas
+    left_metas = Input(shape=(timesteps, num_features_meta), name='left_metas')
+    right_metas = Input(shape=(timesteps, num_features_meta),
+                        name='right_metas')
+    central_metas = Input(shape=(num_features_meta,), name='central_metas')
+
+    predictions_left = concatenate([left_features, left_metas])
+    predictions_right = concatenate([right_features, right_metas])
+
+    predictions_left = Lambda(lambda t: t[:, -1, :],
+                            output_shape=lambda input_shape: (
+                            input_shape[0], input_shape[-1])
+                            )(predictions_left)
+    predictions_right = Lambda(lambda t: t[:, -1, :],
+                                output_shape=lambda input_shape: (
+                                input_shape[0], input_shape[-1],)
+                                )(predictions_right)
+
+    predictions_center = concatenate([central_features, central_metas])
+
+    predictions = concatenate(
+        [predictions_left, predictions_center, predictions_right])
+    pitch_prediction = Dense(num_pitches, activation='softmax',
+                             name='pitch_prediction')(predictions)
+
+    model = Model(input=[left_features, central_features, right_features,
+                         left_metas, central_metas, right_metas
+                         ],
+                  output=pitch_prediction)
+
+    model.compile(optimizer='adam',
+                  loss={'pitch_prediction': 'categorical_crossentropy'},
+                  metrics=['accuracy'])
+    model.summary()
+    return model

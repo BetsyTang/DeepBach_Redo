@@ -15,7 +15,7 @@ from .data_utils import generator_from_raw_dataset, BACH_DATASET, \
     indexed_chorale_to_score, START_SYMBOL, END_SYMBOL, all_metadatas, \
     standard_note, SOP, BASS, PACKAGE_DIR
 from .metadata import *
-from .models_zoo import deepBach, deepbach_skip_connections
+from .models_zoo import deepBach, deepbach_skip_connections, maxentBach, mlpBach
 
 
 def generation(model_base_name, models, timesteps, melody=None,
@@ -645,6 +645,22 @@ def create_models(model_name=None, create_new=False, num_dense=200,
 
         if 'deepbach' in model_name:
             model = deepBach(num_features_lr=left_features.shape[-1],
+                             num_features_c=central_features.shape[-1],
+                             num_pitches=num_pitches[voice_index],
+                             num_features_meta=left_metas.shape[-1],
+                             num_dense=num_dense,
+                             num_units_lstm=num_units_lstm,
+                             timesteps=timesteps)
+        elif 'maxent' in model_name:
+            model = maxentBach(num_features_lr=left_features.shape[-1],
+                             num_features_c=central_features.shape[-1],
+                             num_pitches=num_pitches[voice_index],
+                             num_features_meta=left_metas.shape[-1],
+                             num_dense=num_dense,
+                             num_units_lstm=num_units_lstm,
+                             timesteps=timesteps)
+        elif 'mlp' in model_name:
+            model = mlpBach(num_features_lr=left_features.shape[-1],
                              num_features_c=central_features.shape[-1],
                              num_pitches=num_pitches[voice_index],
                              num_features_meta=left_metas.shape[-1],
