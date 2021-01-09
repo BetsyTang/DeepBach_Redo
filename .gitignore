@@ -90,6 +90,8 @@ ENV/
 
 # local files
 .idea/
+.vscode/
+.DS_Store
 stats/
 deepbach_ressources/
 DeepBach/models/*.yaml
